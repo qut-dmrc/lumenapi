@@ -44,16 +44,16 @@ class Lumen():
             elif r.status_code == 422:
                 # Lumen's most common error type.
                 try:
-                    error = "Lumen returned error 422 Unprocessable Entity. Details:\n{}".format(r.text)
+                    error = "Lumen returned error 422 Unprocessable Entity. Details: {}".format(r.status_code, r.text)
                 except:
                     error = "Lumen returned error 422 Unprocessable Entity. No details available."
 
                 logging.exception(error)
-                raise HTTPError(error)
+                raise HTTPError(r.url, r.status_code, error, r.headers)
             else:
-                error = "Unknown error fetching lumen data. HTTP error received: {}".format(r.status_code)
+                error = "Unknown error fetching lumen data. HTTP error received: {} {}".format(r.status_code, r.text)
                 logging.exception(error)
-                raise HTTPError(error)
+                raise HTTPError(r.url, r.status_code, error, r.headers)
 
     def get(self, notice_id):
         """ GET https://lumendatabase.org/notices/<notice id>.json """
@@ -63,4 +63,6 @@ class Lumen():
             json_results = r.json()
             return json_results.get('dmca')
         else:
-            raise HTTPError("Unable to get notice. HTTP error received: {}".format(r.status_code))
+            error = "Unable to get notice. HTTP error received: {} {}".format(r.status_code, r.text)
+            logging.exception(error)
+            raise HTTPError(r.url, r.status_code, error, r.headers)
